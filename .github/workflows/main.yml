@@ -28,8 +28,5 @@ jobs:
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: jmeter-html-report
-          path: reports/html/petstore/
-        with:
           name: jmeter-loadtesting_results
           path: results1/
