@@ -15,15 +15,22 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
+      - name: Create Reports Directory
+        run: mkdir -p reports/html
+
       - name: PerfAction for JMeter
         uses: QAInsights/PerfAction@v5.6.2
         with:
           test-plan-path: './1petstore.octoperf.har.jmx'
-          args: "-Jhost=api.staging.com -Jusers=10"
+          # -e generates dashboard, -o specifies output folder
+          args: "-e -o ./reports/html -Jhost=api.staging.com -Jusers=10"
 
-      - name: Upload Results
+      - name: Upload HTML Dashboard Report
         uses: actions/upload-artifact@v4
         if: always()
+        with:
+          name: jmeter-html-report
+          path: reports/html/
         with:
           name: jmeter-results
           path: results/
