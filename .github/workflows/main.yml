@@ -1,4 +1,13 @@
+
 name: CI
+ Check failure on line 1 in .github/workflows/main.yml
+
+
+GitHub Actions
+/ .github/workflows/main.yml
+Invalid workflow file
+
+(Line: 33, Col: 9): 'with' is already defined
 
 on:
   push:
@@ -29,6 +38,10 @@ jobs:
         if: always()
         with:
           name: jmeter-html-report
+          path: reports/html/
+        with:
+          name: jmeter-loadtesting_results
+          path: results1/
           path: reports/html/
         with:
           name: jmeter-loadtesting_results
