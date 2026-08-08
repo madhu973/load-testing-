@@ -33,5 +33,5 @@ jobs:
           path: reports/html/
         with:
           name: jmeter-results
-          path: results/
+          path: results1/
       
