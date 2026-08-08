@@ -29,7 +29,7 @@ jobs:
         if: always()
         with:
           name: jmeter-html-report
-          path: reports/html/
+          path: reports/html/petstore/
         with:
           name: jmeter-loadtesting_results
           path: results1/
