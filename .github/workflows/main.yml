@@ -27,6 +27,4 @@ jobs:
         with:
           name: jmeter-results
           path: results/
-          name: jmeter-results
-          path: results/
       
