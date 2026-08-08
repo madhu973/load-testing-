@@ -31,6 +31,6 @@ jobs:
           name: jmeter-html-report
           path: reports/html/
         with:
-          name: jmeter-results
+          name: jmeter-loadtesting_results
           path: results1/
       
