@@ -22,7 +22,6 @@ jobs:
         uses: QAInsights/PerfAction@v5.6.2
         with:
           test-plan-path: './1petstore.octoperf.har.jmx'
-          # -e generates dashboard, -o specifies output folder
           args: "-e -o ./reports/html -Jhost=api.staging.com -Jusers=10"
 
       - name: Upload HTML Dashboard Report
