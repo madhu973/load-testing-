@@ -12,15 +12,23 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
+      # ✅ Fix 1: Updated from @v2 → @v4
+      - uses: actions/checkout@v4
 
+      # ✅ Fix 2: Updated from @v3.0 → @v5.6.2 (correct version tag)
+      # ✅ Fix 3: Added quotes around the .jmx file path
       - name: PerfAction for JMeter
-        uses: QAInsights/PerfAction@v3.0
+        uses: QAInsights/PerfAction@v5.6.2
         with:
-          test-plan-path: 1petstore.octoperf.har.jmx   # Path to your .jmx file
-          args: "-Jhost=api.staging.com -Jusers=10"   # Override JMeter variables
-          
+          test-plan-path: './1petstore.octoperf.har.jmx'
+          args: "-Jhost=api.staging.com -Jusers=10"
+
       - name: Upload Results
+        uses: actions/upload-artifact@v4
+        if: always()   # ⚠️ Added: uploads even if test fails
+        with:
+          name: jmeter-results
+          path: results/
         uses: actions/upload-artifact@v4
         with:
           name: jmeter-results
