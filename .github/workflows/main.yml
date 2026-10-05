@@ -1,30 +1,73 @@
+# Save as: .github/workflows/jmeter-load-test.yml
 name: JMeter Load Test
 
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
+    inputs:
+      host:
+        description: "Target host"
+        default: "api.staging.com"
+      users:
+        description: "Number of virtual users"
+        default: "10"
+      rampup:
+        description: "Ramp-up (seconds)"
+        default: "10"
+      duration:
+        description: "Duration (seconds)"
+        default: "60"
+
+concurrency:
+  group: jmeter-load-test
+  cancel-in-progress: false
 
 jobs:
   load-test:
-    runs-on: self-hosted
+    # Runs only on your VM runner that has ALL of these labels
+    runs-on: [self-hosted, windows, jmeter, load-vm]
+    timeout-minutes: 90
+    env:
+      HEAP: "-Xms2g -Xmx8g"   # keep within the VM's RAM
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Run JMeter Non-GUI Test
+      - name: Check JMeter on the VM
         shell: powershell
         run: |
-          New-Item -ItemType Directory -Force -Path reports\html
+          jmeter -v
+          if ($LASTEXITCODE -ne 0) { Write-Error "JMeter not found on this VM"; exit 1 }
+
+      - name: Run JMeter Non-GUI Test
+        shell: powershell
+        env:
+          TEST_HOST: ${{ inputs.host }}
+          TEST_USERS: ${{ inputs.users }}
+          TEST_RAMPUP: ${{ inputs.rampup }}
+          TEST_DURATION: ${{ inputs.duration }}
+        run: |
+          Remove-Item -Recurse -Force reports, result.jtl, jmeter.log -ErrorAction SilentlyContinue
+          New-Item -ItemType Directory -Force -Path reports\html | Out-Null
 
           jmeter -n `
             -t ".\1petstore.octoperf.har.jmx" `
             -l ".\result.jtl" `
-            -e `
-            -o ".\reports\html" `
-            -Jhost="api.staging.com" `
-            -Jusers=10
+            -j ".\jmeter.log" `
+            -e -o ".\reports\html" `
+            -Jhost="$env:TEST_HOST" `
+            -Jusers="$env:TEST_USERS" `
+            -Jrampup="$env:TEST_RAMPUP" `
+            -Jduration="$env:TEST_DURATION"
+
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Fail if error rate > 1%
+        shell: powershell
+        run: |
+          $stats = Get-Content reports\html\statistics.json -Raw | ConvertFrom-Json
+          Write-Host "Error rate: $($stats.Total.errorPct)%"
+          if ([double]$stats.Total.errorPct -gt 1) { exit 1 }
 
       - name: Upload JMeter Report
         if: always()
@@ -33,10 +76,12 @@ jobs:
           name: jmeter-report
           path: reports/html/
 
-      - name: Upload JTL Results
+      - name: Upload JTL Results and Log
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: jmeter-results
-          path: result.jtl
+          path: |
+            result.jtl
+            jmeter.log
 
